@@ -7,7 +7,6 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.9.0
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.7.0
 	github.com/go-logr/logr v1.4.2
-	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
 	github.com/google/go-cmp v0.7.0
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.37.0
