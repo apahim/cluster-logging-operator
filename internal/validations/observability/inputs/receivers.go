@@ -3,11 +3,11 @@ package inputs
 import (
 	"fmt"
 	log "github.com/ViaQ/logerr/v2/log/static"
-	"github.com/golang-collections/collections/set"
 	obs "github.com/openshift/cluster-logging-operator/api/observability/v1"
 	"github.com/openshift/cluster-logging-operator/internal/api/initialize"
 	. "github.com/openshift/cluster-logging-operator/internal/api/observability"
 	"github.com/openshift/cluster-logging-operator/internal/utils"
+	"github.com/openshift/cluster-logging-operator/internal/utils/sets"
 	"github.com/openshift/cluster-logging-operator/internal/validations/observability/common"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -57,7 +57,7 @@ func ValidateReceiver(spec obs.InputSpec, secrets map[string]*corev1.Secret, con
 	}
 }
 
-func removeGeneratedSecrets(keys []*obs.ValueReference, skipKeys *set.Set) (result []*obs.ValueReference) {
+func removeGeneratedSecrets(keys []*obs.ValueReference, skipKeys *sets.Set) (result []*obs.ValueReference) {
 	for _, secretKey := range keys {
 		if secretKey.SecretName != "" {
 			key := fmt.Sprintf("%v_%v", secretKey.SecretName, secretKey.Key)
@@ -71,8 +71,8 @@ func removeGeneratedSecrets(keys []*obs.ValueReference, skipKeys *set.Set) (resu
 	return result
 }
 
-func extractSecretKeysAsSet(context utils.Options) *set.Set {
-	secretKeys := set.New()
+func extractSecretKeysAsSet(context utils.Options) *sets.Set {
+	secretKeys := sets.New()
 	if generatedSecrets, found := utils.GetOption[[]*corev1.Secret](context, initialize.GeneratedSecrets, []*corev1.Secret{}); found {
 		for _, secret := range generatedSecrets {
 			for key := range secret.Data {
