@@ -18,7 +18,7 @@ import (
 	"unsafe"
 
 	"github.com/go-logr/logr"
-	"github.com/onsi/ginkgo/v2"
+	ginkgo "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega/format"
 	utilsjson "github.com/openshift/cluster-logging-operator/internal/utils/json"
 	"golang.org/x/net/html"
