@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 git diff --no-ext-diff --quiet -I'^    createdAt: ' bundle/manifests/cluster-logging.clusterserviceversion.yaml
 if ((! $?)) ; then

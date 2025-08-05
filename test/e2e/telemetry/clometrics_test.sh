@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 #ensure you are logged into OCP cluster beforehand
 #ensure clo operator is installed and CL, CLF instances are running beforehand
