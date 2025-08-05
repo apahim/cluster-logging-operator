@@ -33,3 +33,17 @@ type OptElement = KeyVal
 func Optional(k, v string) KeyVal {
 	return KV(k, v)
 }
+
+// OptionalPair represents an optional key-value pair for configuration
+type OptionalPair struct {
+	Key   string
+	Value interface{}
+}
+
+// NewOptionalPair creates a new OptionalPair
+func NewOptionalPair(key string, value interface{}) OptionalPair {
+	return OptionalPair{
+		Key:   key,
+		Value: value,
+	}
+}
