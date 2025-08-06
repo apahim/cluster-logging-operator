@@ -1,0 +1,7 @@
+[sinks.s3out]
+type = "aws_s3"
+inputs = ["application"]
+bucket = "my-logs-bucket"
+region = "us-east-1"
+auth.access_key_id = "AKIAIOSFODNN7EXAMPLE"
+auth.secret_access_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
