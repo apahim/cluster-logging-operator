@@ -1,0 +1,38 @@
+# Sending logs to AWS S3
+[sinks.s3]
+type = "aws_s3"
+inputs = ["s3_key_prefix"]
+region = "us-east-1"
+bucket = "my-log-bucket"
+key_prefix = "{{ _internal.key_prefix }}"
+compression = "gzip"
+healthcheck.enabled = false
+[sinks.s3.encoding]
+codec = "json"
+[sinks.s3.auth]
+access_key_id = "${AWS_ACCESS_KEY_ID}"
+secret_access_key = "${AWS_SECRET_ACCESS_KEY}"
+
+[transforms.s3_key_prefix]
+type = "remap"
+inputs = ["s3_normalize_keys"]
+source = '''
+# S3 KeyPrefix
+._internal.key_prefix = "cluster-logs/unknown/info/"
+'''
+
+[transforms.s3_normalize_keys]
+type = "remap"
+inputs = ["application"]
+source = '''
+# Create S3 object key structure
+if !exists(.file) { .file = "logs" }
+
+# Set up date components for key prefix
+._internal.year = format_timestamp!(.timestamp, format: "%Y")
+._internal.month = format_timestamp!(.timestamp, format: "%m") 
+._internal.day = format_timestamp!(.timestamp, format: "%d")
+
+# Default key prefix pattern
+._internal.key_prefix = join!(["date=", ._internal.year, "-", ._internal.month, "-", ._internal.day, "/"])
+'''

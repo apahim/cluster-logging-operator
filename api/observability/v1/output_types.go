@@ -1391,6 +1391,14 @@ type S3 struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Key Prefix",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:text"}
 	KeyPrefix string `json:"keyPrefix,omitempty"`
 
+	// URL is the custom S3-compatible endpoint URL.
+	// If not specified, the default AWS S3 endpoint will be used.
+	// This is useful for S3-compatible services like MinIO or Ceph Object Gateway.
+	//
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Custom Endpoint URL",xDescriptors={"urn:alm:descriptor:com.tectonic.ui:text"}
+	URL string `json:"url,omitempty"`
+
 	// Authentication sets credentials for authenticating the requests to AWS S3.
 	//
 	// +kubebuilder:validation:Required

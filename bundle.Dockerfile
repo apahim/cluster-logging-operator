@@ -14,16 +14,3 @@ LABEL operators.operatorframework.io.metrics.project_layout=go.kubebuilder.io/v4
 # Copy files to locations specified by labels.
 COPY bundle/manifests /manifests/
 COPY bundle/metadata /metadata/
-
-LABEL com.redhat.delivery.operator.bundle=true
-LABEL com.redhat.openshift.versions="v4.16-v4.19"
-
-LABEL \
-    com.redhat.component="cluster-logging-operator" \
-    version="v6.4" \
-    name="cluster-logging-operator" \
-    License="Apache-2.0" \
-    io.k8s.display-name="cluster-logging-operator bundle" \
-    io.k8s.description="bundle for the cluster-logging-operator" \
-    summary="This is the bundle for the cluster-logging-operator" \
-    maintainer="AOS Logging <team-logging@redhat.com>"
