@@ -8,6 +8,7 @@ import (
 	log "github.com/ViaQ/logerr/v2/log/static"
 	"github.com/openshift/cluster-logging-operator/internal/auth"
 	"github.com/openshift/cluster-logging-operator/internal/collector/common"
+	"github.com/openshift/cluster-logging-operator/internal/collector/s3"
 	"github.com/openshift/cluster-logging-operator/internal/runtime"
 
 	configv1 "github.com/openshift/api/config/v1"
@@ -173,6 +174,9 @@ func (f *Factory) NewPodSpec(trustedCABundle *v1.ConfigMap, spec obs.ClusterLogF
 	addTrustedCABundle(collector, podSpec, trustedCABundle)
 
 	f.Visit(collector, podSpec, f.ResourceNames, namespace, f.LogLevel)
+
+	// Add AWS environment variables for S3 outputs using IAM role authentication
+	s3.AddAWSEnvironmentVariables(collector, spec.Outputs, f.Secrets)
 
 	podSpec.Containers = []v1.Container{
 		*collector,

@@ -2,19 +2,18 @@ package s3
 
 import (
 	_ "embed"
-
-	"github.com/openshift/cluster-logging-operator/internal/api/observability"
-	"github.com/openshift/cluster-logging-operator/internal/constants"
-	"github.com/openshift/cluster-logging-operator/internal/utils"
+	"regexp"
 
 	obs "github.com/openshift/cluster-logging-operator/api/observability/v1"
+	"github.com/openshift/cluster-logging-operator/internal/api/observability"
+	"github.com/openshift/cluster-logging-operator/internal/constants"
 	. "github.com/openshift/cluster-logging-operator/internal/generator/framework"
 	"github.com/openshift/cluster-logging-operator/internal/generator/vector/output/common"
+	"github.com/openshift/cluster-logging-operator/internal/utils"
 
 	genhelper "github.com/openshift/cluster-logging-operator/internal/generator/helpers"
 	. "github.com/openshift/cluster-logging-operator/internal/generator/vector/elements"
 	vectorhelpers "github.com/openshift/cluster-logging-operator/internal/generator/vector/helpers"
-	commontemplate "github.com/openshift/cluster-logging-operator/internal/generator/vector/output/common/template"
 )
 
 type S3 struct {
@@ -43,6 +42,7 @@ region = "{{.Region}}"{{if .KeyPrefix}}
 key_prefix = "{{.KeyPrefix}}"{{end}}
 {{compose_one .SecurityConfig}}
 {{.Compression}}
+healthcheck.enabled = false
 {{end}}`
 }
 
@@ -57,14 +57,11 @@ func New(id string, o obs.OutputSpec, inputs []string, secrets observability.Sec
 			Debug(id, vectorhelpers.MakeInputs([]string{componentID}...)),
 		}
 	}
-	return MergeElements(
-		[]Element{
-			commontemplate.TemplateRemap(id+"_template", inputs, "", "template", "S3 Template"),
-		},
-		[]Element{
-			NewS3(componentID, o, inputs, secrets, op),
-		},
-	)
+	return []Element{
+		NewS3(componentID, o, inputs, secrets, op),
+		common.NewEncoding(id, common.CodecJSON),
+		common.NewBatch(id, strategy),
+	}
 }
 
 func NewS3(id string, o obs.OutputSpec, inputs []string, secrets observability.Secrets, op Options) *S3 {
@@ -93,7 +90,7 @@ func authConfig(outputName string, auth *obs.S3Authentication, secrets observabi
 	if auth == nil {
 		return Nil
 	}
-	
+
 	a := NewAuth()
 	switch auth.Type {
 	case obs.S3AuthTypeAwsAccessKey:
@@ -103,10 +100,10 @@ func authConfig(outputName string, auth *obs.S3Authentication, secrets observabi
 	case obs.S3AuthTypeIAMRole:
 		switch auth.IAMRole.Token.From {
 		case obs.BearerTokenFromServiceAccount:
-			// Vector does not support web identity tokens directly,
-			// STS credentials exchange is handled at the pod level
-			// Just use the role ARN as profile
-			a.Profile = genhelper.NewOptionalPair("auth.profile", "output_"+outputName)
+			// Vector automatically detects web identity token credentials from the environment
+			// when running in STS-enabled clusters. The environment variables (AWS_WEB_IDENTITY_TOKEN_FILE,
+			// AWS_ROLE_ARN) set by the collector will handle the role assumption automatically.
+			// No additional auth configuration needed in Vector config.
 		case obs.BearerTokenFromSecret:
 			// When using a token from secret, we'll use the credentials file approach
 			if forwarderName, found := utils.GetOption(options, OptionForwarderName, ""); found {
@@ -116,4 +113,20 @@ func authConfig(outputName string, auth *obs.S3Authentication, secrets observabi
 		}
 	}
 	return a
+}
+
+// ParseRoleArn search for matching valid ARN
+func ParseRoleArn(auth *obs.S3Authentication, secrets observability.Secrets) string {
+	if auth.Type == obs.S3AuthTypeIAMRole {
+		roleArnString := secrets.AsString(&auth.IAMRole.RoleARN)
+
+		if roleArnString != "" {
+			reg := regexp.MustCompile(`(arn:aws(.*)?:(iam|sts)::\d{12}:role\/\S+)\s?`)
+			roleArn := reg.FindStringSubmatch(roleArnString)
+			if roleArn != nil {
+				return roleArn[1] // the capturing group is index 1
+			}
+		}
+	}
+	return ""
 }

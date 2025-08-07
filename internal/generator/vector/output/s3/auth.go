@@ -9,6 +9,7 @@ type Auth struct {
 	KeySecret       OptionalPair
 	CredentialsPath OptionalPair
 	Profile         OptionalPair
+	AssumeRole      OptionalPair
 }
 
 func NewAuth() Auth {
@@ -17,6 +18,7 @@ func NewAuth() Auth {
 		KeySecret:       NewOptionalPair("auth.secret_access_key", nil),
 		CredentialsPath: NewOptionalPair("auth.credentials_file", nil),
 		Profile:         NewOptionalPair("auth.profile", nil),
+		AssumeRole:      NewOptionalPair("auth.assume_role", nil),
 	}
 }
 
@@ -30,5 +32,6 @@ func (a Auth) Template() string {
 {{.KeySecret}}
 {{.CredentialsPath}}
 {{.Profile}}
+{{.AssumeRole}}
 {{- end}}`
 }

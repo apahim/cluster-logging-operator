@@ -4,11 +4,11 @@ source .bingo/variables.env
 
 set -euo pipefail
 
-sed -i '' 's/bundle\.package\.v1=.*logging/bundle\.package\.v1=cluster-logging/g' bundle.Dockerfile
-sed -i '' 's/.*scorecard.*//g' bundle.Dockerfile
+sed -i 's/bundle\.package\.v1=.*logging/bundle\.package\.v1=cluster-logging/g' bundle.Dockerfile
+sed -i 's/.*scorecard.*//g' bundle.Dockerfile
 
-sed -i '' 's/bundle\.package\.v1\: .*logging/bundle\.package\.v1\: cluster-logging/g' ./bundle/metadata/annotations.yaml
-sed -i '' 's/.*scorecard.*//g' ./bundle/metadata/annotations.yaml
+sed -i 's/bundle\.package\.v1\: .*logging/bundle\.package\.v1\: cluster-logging/g' ./bundle/metadata/annotations.yaml
+sed -i 's/.*scorecard.*//g' ./bundle/metadata/annotations.yaml
 
 cat >> bundle.Dockerfile <<EOF
 
