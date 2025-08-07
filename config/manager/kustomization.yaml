@@ -5,4 +5,4 @@ resources:
 images:
 - name: controller
   newName: quay.io/apahim/cluster-logging-operator
-  newTag: 6.4.7
+  newTag: 6.4.9

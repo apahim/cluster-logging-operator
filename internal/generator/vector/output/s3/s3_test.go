@@ -188,5 +188,112 @@ var _ = Describe("Generate Vector S3 output", func() {
 			Expect(results).To(ContainSubstring(`bucket = "my-bucket"`))
 			Expect(results).To(ContainSubstring(`region = "us-east-1"`))
 		})
+
+		It("should generate S3 output with assume role ARN and service account token", func() {
+			outputs := []obs.OutputSpec{
+				{
+					Type: obs.OutputTypeS3,
+					Name: "s3-out",
+					S3: &obs.S3{
+						Bucket: "my-bucket",
+						Region: "us-east-1",
+						Authentication: &obs.S3Authentication{
+							Type: obs.S3AuthTypeIAMRole,
+							IAMRole: &obs.S3IAMRole{
+								RoleARN: obs.SecretReference{
+									Key:        "role_arn",
+									SecretName: "s3-role-secret",
+								},
+								Token: obs.BearerToken{
+									From: obs.BearerTokenFromServiceAccount,
+								},
+								AssumeRoleARN: &obs.SecretReference{
+									Key:        "assume_role_arn",
+									SecretName: "assume-role-secret",
+								},
+							},
+						},
+					},
+				},
+			}
+			secrets := map[string]*corev1.Secret{
+				"s3-role-secret": {
+					Data: map[string][]byte{
+						"role_arn": []byte("arn:aws:iam::123456789:role/s3-role"),
+					},
+				},
+				"assume-role-secret": {
+					Data: map[string][]byte{
+						"assume_role_arn": []byte("arn:aws:iam::987654321:role/cross-account-role"),
+					},
+				},
+			}
+			conf := New("s3out", outputs[0], []string{"application"}, secrets, fake.Output{}, framework.NoOptions)
+			results, err := g.GenerateConf(conf...)
+			Expect(err).To(BeNil())
+
+			Expect(results).To(ContainSubstring(`type = "aws_s3"`))
+			Expect(results).To(ContainSubstring(`bucket = "my-bucket"`))
+			Expect(results).To(ContainSubstring(`region = "us-east-1"`))
+			Expect(results).To(ContainSubstring(`auth.assume_role = "SECRET[kubernetes_secret.assume-role-secret/assume_role_arn]"`))
+		})
+
+		It("should generate S3 output with assume role ARN and secret token", func() {
+			outputs := []obs.OutputSpec{
+				{
+					Type: obs.OutputTypeS3,
+					Name: "s3-out",
+					S3: &obs.S3{
+						Bucket: "my-bucket",
+						Region: "us-east-1",
+						Authentication: &obs.S3Authentication{
+							Type: obs.S3AuthTypeIAMRole,
+							IAMRole: &obs.S3IAMRole{
+								RoleARN: obs.SecretReference{
+									Key:        "role_arn",
+									SecretName: "s3-role-secret",
+								},
+								Token: obs.BearerToken{
+									From: obs.BearerTokenFromSecret,
+									Secret: &obs.BearerTokenSecretKey{
+										Key:  "token",
+										Name: "token-secret",
+									},
+								},
+								AssumeRoleARN: &obs.SecretReference{
+									Key:        "assume_role_arn",
+									SecretName: "assume-role-secret",
+								},
+							},
+						},
+					},
+				},
+			}
+			secrets := map[string]*corev1.Secret{
+				"s3-role-secret": {
+					Data: map[string][]byte{
+						"role_arn": []byte("arn:aws:iam::123456789:role/s3-role"),
+					},
+				},
+				"assume-role-secret": {
+					Data: map[string][]byte{
+						"assume_role_arn": []byte("arn:aws:iam::987654321:role/cross-account-role"),
+					},
+				},
+				"token-secret": {
+					Data: map[string][]byte{
+						"token": []byte("my-bearer-token"),
+					},
+				},
+			}
+			conf := New("s3out", outputs[0], []string{"application"}, secrets, fake.Output{}, framework.NoOptions)
+			results, err := g.GenerateConf(conf...)
+			Expect(err).To(BeNil())
+
+			Expect(results).To(ContainSubstring(`type = "aws_s3"`))
+			Expect(results).To(ContainSubstring(`bucket = "my-bucket"`))
+			Expect(results).To(ContainSubstring(`region = "us-east-1"`))
+			Expect(results).To(ContainSubstring(`auth.assume_role = "SECRET[kubernetes_secret.assume-role-secret/assume_role_arn]"`))
+		})
 	})
 })

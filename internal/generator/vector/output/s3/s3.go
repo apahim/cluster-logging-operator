@@ -103,12 +103,19 @@ func authConfig(outputName string, auth *obs.S3Authentication, secrets observabi
 			// Vector automatically detects web identity token credentials from the environment
 			// when running in STS-enabled clusters. The environment variables (AWS_WEB_IDENTITY_TOKEN_FILE,
 			// AWS_ROLE_ARN) set by the collector will handle the role assumption automatically.
-			// No additional auth configuration needed in Vector config.
+			// If an explicit assume_role ARN is provided, it will be used in addition to the ServiceAccount role.
+			if auth.IAMRole.AssumeRoleARN != nil {
+				a.AssumeRole = genhelper.NewOptionalPair("auth.assume_role", vectorhelpers.SecretFrom(auth.IAMRole.AssumeRoleARN))
+			}
 		case obs.BearerTokenFromSecret:
 			// When using a token from secret, we'll use the credentials file approach
 			if forwarderName, found := utils.GetOption(options, OptionForwarderName, ""); found {
 				a.CredentialsPath = genhelper.NewOptionalPair("auth.credentials_file", vectorhelpers.ConfigPath(forwarderName+"-"+constants.AWSCredentialsConfigMapName, constants.AWSCredentialsKey))
 				a.Profile = genhelper.NewOptionalPair("auth.profile", "output_"+outputName)
+			}
+			// Also support assume_role with credential file approach
+			if auth.IAMRole.AssumeRoleARN != nil {
+				a.AssumeRole = genhelper.NewOptionalPair("auth.assume_role", vectorhelpers.SecretFrom(auth.IAMRole.AssumeRoleARN))
 			}
 		}
 	}

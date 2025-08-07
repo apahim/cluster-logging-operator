@@ -1457,6 +1457,16 @@ type S3IAMRole struct {
 	// +kubebuilder:validation:Required
 	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Token"
 	Token BearerToken `json:"token"`
+
+	// AssumeRoleARN points to the secret containing an additional role ARN to assume.
+	// This allows for cross-account access or additional role chaining.
+	// When specified, this role will be assumed after authenticating with the primary RoleARN.
+	// This preserves the ServiceAccount's AWS_ROLE_ARN environment variable behavior while
+	// allowing explicit assume_role configuration in Vector.
+	//
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=spec,displayName="Assume Role ARN Secret"
+	AssumeRoleARN *SecretReference `json:"assumeRoleARN,omitempty"`
 }
 
 // S3AWSAccessKey contains configuration for AWS access key authentication.

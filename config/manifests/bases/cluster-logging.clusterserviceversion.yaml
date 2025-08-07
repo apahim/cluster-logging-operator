@@ -1379,6 +1379,25 @@ spec:
         displayName: Amazon IAM Role
         path: outputs[0].s3.authentication.iamRole
       - description: |-
+          AssumeRoleARN points to the secret containing an additional role ARN to assume.
+          This allows for cross-account access or additional role chaining.
+          When specified, this role will be assumed after authenticating with the primary RoleARN.
+          This preserves the ServiceAccount's AWS_ROLE_ARN environment variable behavior while
+          allowing explicit assume_role configuration in Vector.
+        displayName: Assume Role ARN Secret
+        path: outputs[0].s3.authentication.iamRole.assumeRoleARN
+      - description: Key contains the name of the key inside the referenced Secret.
+        displayName: Key Name
+        path: outputs[0].s3.authentication.iamRole.assumeRoleARN.key
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: SecretName contains the name of the Secret containing the referenced
+          value.
+        displayName: Secret Name
+        path: outputs[0].s3.authentication.iamRole.assumeRoleARN.secretName
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: |-
           RoleARN points to the secret containing the role ARN to be used for authentication.
           This is used for authentication in STS-enabled clusters.
         displayName: RoleARN Secret

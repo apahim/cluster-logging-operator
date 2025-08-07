@@ -1,0 +1,56 @@
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: s3-with-assume-role
+  namespace: openshift-logging
+spec:
+  outputs:
+  - name: s3-cross-account
+    type: s3
+    s3:
+      bucket: my-cross-account-bucket
+      region: us-east-1
+      keyPrefix: "logs/"
+      authentication:
+        type: iamRole
+        iamRole:
+          # Primary role ARN (can be empty to use ServiceAccount role)
+          roleARN:
+            secretName: s3-role-secret
+            key: role_arn
+          # Token configuration
+          token:
+            from: serviceAccount  # Uses AWS_ROLE_ARN from ServiceAccount annotation
+          # Optional assume role for cross-account access
+          assumeRoleARN:
+            secretName: cross-account-role-secret
+            key: assume_role_arn
+      tuning:
+        compression: gzip
+  pipelines:
+  - name: forward-to-s3
+    inputRefs:
+    - application
+    outputRefs:
+    - s3-cross-account
+---
+# Example secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s3-role-secret
+  namespace: openshift-logging
+type: Opaque
+data:
+  # Base64 encoded: arn:aws:iam::123456789012:role/logging-role
+  role_arn: YXJuOmF3czppYW06OjEyMzQ1Njc4OTAxMjpyb2xlL2xvZ2dpbmctcm9sZQ==
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cross-account-role-secret
+  namespace: openshift-logging
+type: Opaque
+data:
+  # Base64 encoded: arn:aws:iam::987654321098:role/cross-account-s3-role
+  assume_role_arn: YXJuOmF3czppYW06Ojk4NzY1NDMyMTA5ODpyb2xlL2Nyb3NzLWFjY291bnQtczMtcm9sZQ==

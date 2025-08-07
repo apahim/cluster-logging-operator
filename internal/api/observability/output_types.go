@@ -218,6 +218,10 @@ func s3AuthKeys(auth *obsv1.S3Authentication) (keys []*obsv1.SecretReference) {
 					SecretName: auth.IAMRole.Token.Secret.Name,
 				})
 			}
+			// Include AssumeRoleARN secret reference if specified
+			if auth.IAMRole.AssumeRoleARN != nil {
+				keys = append(keys, auth.IAMRole.AssumeRoleARN)
+			}
 		}
 	}
 	return keys

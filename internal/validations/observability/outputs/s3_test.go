@@ -163,6 +163,64 @@ var _ = Describe("ValidateS3Auth", func() {
 			messages := ValidateS3Auth(output, context)
 			Expect(messages).To(BeEmpty())
 		})
+
+		It("should require valid secret reference for assumeRoleARN", func() {
+			output.S3.Authentication.IAMRole = &obs.S3IAMRole{
+				RoleARN: obs.SecretReference{
+					Key:        "role_arn",
+					SecretName: "s3-role-secret",
+				},
+				Token: obs.BearerToken{
+					From: obs.BearerTokenFromServiceAccount,
+				},
+				AssumeRoleARN: &obs.SecretReference{
+					Key: "assume_role_arn",
+					// Missing SecretName
+				},
+			}
+			messages := ValidateS3Auth(output, context)
+			Expect(messages).To(ContainElement("assumeRoleARN requires a valid secret reference"))
+		})
+
+		It("should pass validation with valid assumeRoleARN", func() {
+			output.S3.Authentication.IAMRole = &obs.S3IAMRole{
+				RoleARN: obs.SecretReference{
+					Key:        "role_arn",
+					SecretName: "s3-role-secret",
+				},
+				Token: obs.BearerToken{
+					From: obs.BearerTokenFromServiceAccount,
+				},
+				AssumeRoleARN: &obs.SecretReference{
+					Key:        "assume_role_arn",
+					SecretName: "assume-role-secret",
+				},
+			}
+			messages := ValidateS3Auth(output, context)
+			Expect(messages).To(BeEmpty())
+		})
+
+		It("should pass validation with assumeRoleARN and secret token", func() {
+			output.S3.Authentication.IAMRole = &obs.S3IAMRole{
+				RoleARN: obs.SecretReference{
+					Key:        "role_arn",
+					SecretName: "s3-role-secret",
+				},
+				Token: obs.BearerToken{
+					From: obs.BearerTokenFromSecret,
+					Secret: &obs.BearerTokenSecretKey{
+						Key:  "token",
+						Name: "token-secret",
+					},
+				},
+				AssumeRoleARN: &obs.SecretReference{
+					Key:        "assume_role_arn",
+					SecretName: "assume-role-secret",
+				},
+			}
+			messages := ValidateS3Auth(output, context)
+			Expect(messages).To(BeEmpty())
+		})
 	})
 
 	Context("when using invalid authentication type", func() {

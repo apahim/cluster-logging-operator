@@ -44,6 +44,12 @@ func ValidateS3Auth(output obs.OutputSpec, context internalcontext.ForwarderCont
 		default:
 			return append(messages, "iamRole authentication token must be from 'secret' or 'serviceAccount'")
 		}
+		// Validate optional assume role ARN
+		if auth.IAMRole.AssumeRoleARN != nil {
+			if auth.IAMRole.AssumeRoleARN.SecretName == "" {
+				return append(messages, "assumeRoleARN requires a valid secret reference")
+			}
+		}
 
 	default:
 		return append(messages, "s3 authentication type must be 'awsAccessKey' or 'iamRole'")

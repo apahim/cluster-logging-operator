@@ -16,7 +16,7 @@ func AddAWSEnvironmentVariables(collector *corev1.Container, outputs []obs.Outpu
 			if o.S3.Authentication.IAMRole.Token.From == obs.BearerTokenFromServiceAccount {
 				if roleARN := s3.ParseRoleArn(o.S3.Authentication, secrets); roleARN != "" {
 					tokenPath := common.ServiceAccountBasePath(constants.TokenKey)
-					
+
 					// Add AWS environment variables for web identity token authentication
 					collector.Env = append(collector.Env,
 						corev1.EnvVar{
