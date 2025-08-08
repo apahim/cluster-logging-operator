@@ -1,0 +1,62 @@
+---
+# Example CloudWatch Cross-Account ClusterLogForwarder with AssumeRole
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: cloudwatch-cross-account
+  namespace: openshift-logging
+spec:
+  outputs:
+  - name: cloudwatch-prod
+    type: cloudwatch
+    cloudwatch:
+      region: us-east-1
+      groupName: production-logs
+      authentication:
+        type: iamRole
+        iamRole:
+          # Primary role in the cluster's AWS account
+          roleARN:
+            secretName: primary-logging-role
+            key: role_arn
+          token:
+            from: serviceAccount
+          # Cross-account role to assume for log forwarding
+          assumeRoleARN:
+            secretName: cross-account-role
+            key: assume_role_arn
+  pipelines:
+  - name: application-to-cloudwatch
+    inputRefs:
+    - application
+    outputRefs:
+    - cloudwatch-prod
+  - name: infrastructure-to-cloudwatch
+    inputRefs:
+    - infrastructure
+    outputRefs:
+    - cloudwatch-prod
+
+---
+# Secret containing the primary role ARN
+apiVersion: v1
+kind: Secret
+metadata:
+  name: primary-logging-role
+  namespace: openshift-logging
+type: Opaque
+data:
+  # arn:aws:iam::111111111111:role/openshift-logging-role
+  role_arn: YXJuOmF3czppYW06OjExMTExMTExMTExMTpyb2xlL29wZW5zaGlmdC1sb2dnaW5nLXJvbGU=
+
+---
+# Secret containing the cross-account role ARN to assume
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cross-account-role
+  namespace: openshift-logging
+type: Opaque
+data:
+  # arn:aws:iam::222222222222:role/production-logging-role
+  assume_role_arn: YXJuOmF3czppYW06OjIyMjIyMjIyMjIyMjpyb2xlL3Byb2R1Y3Rpb24tbG9nZ2luZy1yb2xl
