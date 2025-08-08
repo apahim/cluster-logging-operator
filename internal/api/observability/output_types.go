@@ -152,10 +152,6 @@ func SecretReferences(o obsv1.OutputSpec) []*obsv1.SecretReference {
 		if o.Splunk != nil && o.Splunk.Authentication != nil {
 			return []*obsv1.SecretReference{o.Splunk.Authentication.Token}
 		}
-	case obsv1.OutputTypeS3:
-		if o.S3 != nil && o.S3.Authentication != nil {
-			return s3AuthKeys(o.S3.Authentication)
-		}
 	case obsv1.OutputTypeSyslog:
 	default:
 		log.V(0).Error(OutputTypeUnknown(o.Type), "Found unsupported output type while gathering secret names")

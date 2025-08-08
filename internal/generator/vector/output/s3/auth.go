@@ -3,6 +3,7 @@ package s3
 import (
 	"fmt"
 	"path/filepath"
+	"regexp"
 
 	obs "github.com/openshift/cluster-logging-operator/api/observability/v1"
 	"github.com/openshift/cluster-logging-operator/internal/api/observability"
@@ -115,4 +116,19 @@ func GenerateS3CredentialFiles(id string, auth *obs.S3Authentication, secrets ob
 	}
 
 	return envVars
+}
+
+// ParseRoleArn search for matching valid ARN
+func ParseRoleArn(auth *obs.S3Authentication, secrets observability.Secrets) string {
+	if auth.Type == obs.S3AuthTypeIAMRole {
+		roleArnString := secrets.AsString(&auth.IAMRole.RoleARN)
+		if roleArnString != "" {
+			reg := regexp.MustCompile(`(arn:aws(.*)?:(iam|sts)::\d{12}:role\/\S+)\s?`)
+			roleArn := reg.FindStringSubmatch(roleArnString)
+			if roleArn != nil {
+				return roleArn[1] // the capturing group is index 1
+			}
+		}
+	}
+	return ""
 }
