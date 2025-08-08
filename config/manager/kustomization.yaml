@@ -4,5 +4,5 @@ resources:
 - manager.yaml
 images:
 - name: controller
-  newName: quay.io/openshift-logging/cluster-logging-operator
-  newTag: latest
+  newName: quay.io/apahim/cluster-logging-operator
+  newTag: 6.4.15

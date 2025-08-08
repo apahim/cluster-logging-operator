@@ -122,13 +122,18 @@ func authConfig(outputName string, auth *obs.CloudwatchAuthentication, options O
 		authConfig.KeyID.Value = vectorhelpers.SecretFrom(&auth.AWSAccessKey.KeyId)
 		authConfig.KeySecret.Value = vectorhelpers.SecretFrom(&auth.AWSAccessKey.KeySecret)
 	} else if auth != nil && auth.Type == obs.CloudwatchAuthTypeIAMRole {
-		if forwarderName, found := utils.GetOption(options, OptionForwarderName, ""); found {
-			authConfig.CredentialsPath.Value = strings.Trim(vectorhelpers.ConfigPath(forwarderName+"-"+constants.AWSCredentialsConfigMapName, constants.AWSCredentialsKey), `"`)
-			authConfig.Profile.Value = "output_" + outputName
-		}
-		// Add assume_role configuration if AssumeRoleARN is specified
+		// If AssumeRoleARN is specified, use environment-based auth for primary role
+		// and assume_role for the additional role
 		if auth.IAMRole.AssumeRoleARN != nil {
+			// Let Vector use the default AWS credential chain (environment variables from ServiceAccount)
+			// and only set the assume_role for the additional role
 			authConfig.AssumeRole.Value = vectorhelpers.SecretFrom(auth.IAMRole.AssumeRoleARN)
+		} else {
+			// Traditional approach with credentials file and profile for primary role only
+			if forwarderName, found := utils.GetOption(options, OptionForwarderName, ""); found {
+				authConfig.CredentialsPath.Value = strings.Trim(vectorhelpers.ConfigPath(forwarderName+"-"+constants.AWSCredentialsConfigMapName, constants.AWSCredentialsKey), `"`)
+				authConfig.Profile.Value = "output_" + outputName
+			}
 		}
 	}
 	return authConfig

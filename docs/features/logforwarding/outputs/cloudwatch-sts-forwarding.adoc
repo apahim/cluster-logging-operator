@@ -207,9 +207,10 @@ $ oc apply -f cross-account-secret.yaml
 ==== Important Notes
 
 * The `assumeRoleARN` is **optional** and preserves backward compatibility
-* The primary `roleARN` authentication still uses the ServiceAccount's AWS_ROLE_ARN environment variable
-* Vector will first authenticate using the primary role, then assume the additional role
+* When `assumeRoleARN` is specified, Vector uses the ServiceAccount's AWS_ROLE_ARN environment variable for primary authentication and assumes the additional role
+* When `assumeRoleARN` is not specified, Vector uses the traditional credentials file and profile approach
 * Both roles must have the necessary trust relationships configured in AWS IAM
+* This approach follows AWS best practices for role chaining
 
 == References
 === Openshift
