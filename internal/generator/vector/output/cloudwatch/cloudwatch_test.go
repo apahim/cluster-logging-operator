@@ -100,6 +100,11 @@ var _ = Describe("Generating vector config for cloudwatch output", func() {
 						constants.TrustedCABundleKey: []byte("-- ca-bundle -- "),
 					},
 				},
+				"assume-role-secret": {
+					Data: map[string][]byte{
+						"assume_role_arn": []byte("arn:aws:iam::987654321098:role/cross-account-role"),
+					},
+				},
 			}
 			baseTune = &obs.CloudwatchTuningSpec{
 				BaseOutputTuningSpec: obs.BaseOutputTuningSpec{
@@ -172,6 +177,24 @@ var _ = Describe("Generating vector config for cloudwatch output", func() {
 			Entry("when tuning is spec'd", `{.log_type||"missing"}`, func(spec *obs.OutputSpec) {
 				spec.Cloudwatch.Tuning = baseTune
 			}, true, framework.NoOptions, "cw_with_tuning.toml"),
+			Entry("when AssumeRole ARN is specified", `{.log_type||"missing"}`, func(spec *obs.OutputSpec) {
+				spec.Cloudwatch.Authentication = &obs.CloudwatchAuthentication{
+					Type: obs.CloudwatchAuthTypeIAMRole,
+					IAMRole: &obs.CloudwatchIAMRole{
+						RoleARN: obs.SecretReference{
+							Key:        constants.AWSCredentialsKey,
+							SecretName: secretWithCredentials,
+						},
+						Token: obs.BearerToken{
+							From: obs.BearerTokenFromServiceAccount,
+						},
+						AssumeRoleARN: &obs.SecretReference{
+							Key:        "assume_role_arn",
+							SecretName: "assume-role-secret",
+						},
+					},
+				}
+			}, false, framework.NoOptions, "cw_with_assume_role.toml"),
 		)
 	})
 

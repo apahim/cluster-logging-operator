@@ -130,6 +130,22 @@ spec:
               secret:
                 key: my-token # <7>
                 name: my-sa-token-secret # <7>
+    - name: cw-with-assume-role
+      type: cloudwatch
+      cloudwatch:
+        groupName: 'cw-cross-account{.log_type||"missing"}'
+        region: us-west-1
+        authentication:
+          type: iamRole
+          iamRole:
+            roleARN:
+              key: credentials
+              secretName: sts-secret
+            token:
+              from: serviceAccount
+            assumeRoleARN: # <8>
+              key: assume_role_arn # <8>
+              secretName: cross-account-secret # <8>
   pipelines:
     - name: app-logs
       inputRefs:
@@ -137,6 +153,7 @@ spec:
       outputRefs:
         - cw-sa-projected-token
         - cw-sa-token-secret
+        - cw-with-assume-role
 ----
 <1> The name and namespace of the forwarder
 <2> The service account with the appropriate collection permissions
@@ -145,6 +162,7 @@ spec:
 <5> The `role_arn` used to authenticate. Specify the name of the secret and the key where the `role_arn` is stored.
 <6> The service account token used to authenticate. To use the projected service account token, specify `from: serviceAccount`. 
 <7> To use a token from a secret, specify `from: secret` and provide the key and secret name
+<8> Optional: Additional role ARN to assume for cross-account access or role chaining. Specify the name of the secret and the key where the additional `role_arn` is stored.
 +
 
 . Apply the configured forwarder.
@@ -152,6 +170,46 @@ spec:
 ```
 $ oc apply -f cluster-log-forwarder.yaml
 ```
+
+=== Cross-Account Access with AssumeRole
+
+The optional `assumeRoleARN` field enables cross-account access or additional role chaining. This is useful when you need to write logs to CloudWatch in a different AWS account or when your security setup requires assuming additional roles.
+
+==== Use Cases
+* **Cross-Account Logging**: Send logs from one AWS account to CloudWatch in another account
+* **Role Chaining**: Assume an intermediate role before accessing CloudWatch resources
+* **Enhanced Security**: Add an extra layer of role-based access control
+
+==== Creating the Cross-Account Secret
+
+. Create a secret containing the additional role ARN to assume:
++
+.cross-account-secret.yaml
+[source, yaml]
+----
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cross-account-secret
+  namespace: openshift-logging
+type: Opaque
+stringData:
+  assume_role_arn: "arn:aws:iam::123456789012:role/CrossAccountLoggingRole"
+----
++
+
+. Apply the secret:
++
+```
+$ oc apply -f cross-account-secret.yaml
+```
+
+==== Important Notes
+
+* The `assumeRoleARN` is **optional** and preserves backward compatibility
+* The primary `roleARN` authentication still uses the ServiceAccount's AWS_ROLE_ARN environment variable
+* Vector will first authenticate using the primary role, then assume the additional role
+* Both roles must have the necessary trust relationships configured in AWS IAM
 
 == References
 === Openshift

@@ -1902,6 +1902,26 @@ spec:
                                 a web identity token
                               nullable: true
                               properties:
+                                assumeRoleARN:
+                                  description: |-
+                                    AssumeRoleARN points to the secret containing an additional role ARN to assume.
+                                    This allows for cross-account access or additional role chaining.
+                                    When specified, this role will be assumed after authenticating with the primary RoleARN.
+                                    This preserves the ServiceAccount's AWS_ROLE_ARN environment variable behavior while
+                                    allowing explicit assume_role configuration in Vector.
+                                  properties:
+                                    key:
+                                      description: Key contains the name of the key
+                                        inside the referenced Secret.
+                                      type: string
+                                    secretName:
+                                      description: SecretName contains the name of
+                                        the Secret containing the referenced value.
+                                      type: string
+                                  required:
+                                  - key
+                                  - secretName
+                                  type: object
                                 roleARN:
                                   description: |-
                                     RoleARN points to the secret containing the role ARN to be used for authentication.
@@ -2535,7 +2555,7 @@ spec:
                             x-kubernetes-validations:
                             - message: each broker must be a valid URL with a tcp
                                 or tls scheme
-                              rule: self == '' || (isURL(self) && (self.startsWith('tcp://')
+                              rule: self == ” || (isURL(self) && (self.startsWith('tcp://')
                                 || self.startsWith('tls://')))
                           type: array
                         topic:

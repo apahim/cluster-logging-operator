@@ -28,5 +28,78 @@ var _ = Describe("helpers for output types", func() {
 			}
 		})
 
+		Context("for CloudWatch output", func() {
+			It("should include AssumeRoleARN secret reference when specified", func() {
+				spec := obsv1.OutputSpec{
+					Type: obsv1.OutputTypeCloudwatch,
+					Cloudwatch: &obsv1.Cloudwatch{
+						GroupName: "test-group",
+						Region:    "us-east-1",
+						Authentication: &obsv1.CloudwatchAuthentication{
+							Type: obsv1.CloudwatchAuthTypeIAMRole,
+							IAMRole: &obsv1.CloudwatchIAMRole{
+								RoleARN: obsv1.SecretReference{
+									SecretName: "primary-role-secret",
+									Key:        "role_arn",
+								},
+								Token: obsv1.BearerToken{
+									From: obsv1.BearerTokenFromServiceAccount,
+								},
+								AssumeRoleARN: &obsv1.SecretReference{
+									SecretName: "assume-role-secret",
+									Key:        "assume_role_arn",
+								},
+							},
+						},
+					},
+				}
+
+				secrets := SecretReferences(spec)
+				Expect(secrets).To(HaveLen(2))
+
+				// Should include primary role ARN
+				Expect(secrets).To(ContainElement(&obsv1.SecretReference{
+					SecretName: "primary-role-secret",
+					Key:        "role_arn",
+				}))
+
+				// Should include assume role ARN
+				Expect(secrets).To(ContainElement(&obsv1.SecretReference{
+					SecretName: "assume-role-secret",
+					Key:        "assume_role_arn",
+				}))
+			})
+
+			It("should work without AssumeRoleARN for backward compatibility", func() {
+				spec := obsv1.OutputSpec{
+					Type: obsv1.OutputTypeCloudwatch,
+					Cloudwatch: &obsv1.Cloudwatch{
+						GroupName: "test-group",
+						Region:    "us-east-1",
+						Authentication: &obsv1.CloudwatchAuthentication{
+							Type: obsv1.CloudwatchAuthTypeIAMRole,
+							IAMRole: &obsv1.CloudwatchIAMRole{
+								RoleARN: obsv1.SecretReference{
+									SecretName: "primary-role-secret",
+									Key:        "role_arn",
+								},
+								Token: obsv1.BearerToken{
+									From: obsv1.BearerTokenFromServiceAccount,
+								},
+								// AssumeRoleARN is not specified
+							},
+						},
+					},
+				}
+
+				secrets := SecretReferences(spec)
+				Expect(secrets).To(HaveLen(1))
+				Expect(secrets).To(ContainElement(&obsv1.SecretReference{
+					SecretName: "primary-role-secret",
+					Key:        "role_arn",
+				}))
+			})
+		})
+
 	})
 })

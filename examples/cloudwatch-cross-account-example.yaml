@@ -1,0 +1,47 @@
+---
+# Secret containing the cross-account role ARN to assume
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cross-account-secret
+  namespace: openshift-logging
+type: Opaque
+stringData:
+  assume_role_arn: "arn:aws:iam::123456789012:role/CrossAccountLoggingRole"
+
+---
+# ClusterLogForwarder demonstrating AssumeRoleARN functionality
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: cloudwatch-cross-account-forwarder
+  namespace: openshift-logging
+spec:
+  serviceAccount:
+    name: my-sa
+  outputs:
+    - name: cloudwatch-cross-account
+      type: cloudwatch
+      cloudwatch:
+        groupName: 'cross-account-logs-{.log_type||"missing"}'
+        region: us-east-1
+        authentication:
+          type: iamRole
+          iamRole:
+            # Primary role ARN from STS credentials
+            roleARN:
+              key: credentials
+              secretName: sts-secret
+            # ServiceAccount token for primary authentication
+            token:
+              from: serviceAccount
+            # Additional role to assume for cross-account access
+            assumeRoleARN:
+              key: assume_role_arn
+              secretName: cross-account-secret
+  pipelines:
+    - name: send-app-logs-cross-account
+      inputRefs:
+        - application
+      outputRefs:
+        - cloudwatch-cross-account
