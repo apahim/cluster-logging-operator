@@ -1379,7 +1379,6 @@ spec:
         displayName: Amazon IAM Role
         path: outputs[0].s3.authentication.iamRole
       - description: |-
-<<<<<<< HEAD
           AssumeRoleARN points to the secret containing an additional role ARN to assume.
           This allows for cross-account access or additional role chaining.
           When specified, this role will be assumed after authenticating with the primary RoleARN.
@@ -1399,8 +1398,6 @@ spec:
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
       - description: |-
-=======
->>>>>>> dbf84f3b7 (feat: Enhance S3 output with merged features from cuppett/s3_output)
           RoleARN points to the secret containing the role ARN to be used for authentication.
           This is used for authentication in STS-enabled clusters.
         displayName: RoleARN Secret
@@ -1479,8 +1476,6 @@ spec:
           to retry after delivery a failure.
         displayName: Minimum Retry Duration
         path: outputs[0].s3.tuning.minRetryDuration
-<<<<<<< HEAD
-=======
       - description: |-
           URL is the custom S3-compatible endpoint URL.
           If not specified, the default AWS S3 endpoint will be used.
@@ -1489,7 +1484,6 @@ spec:
         path: outputs[0].s3.url
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:text
->>>>>>> dbf84f3b7 (feat: Enhance S3 output with merged features from cuppett/s3_output)
       - description: Splunk configures forwarding log events to Splunk's HTTP event
           collector
         displayName: Splunk
