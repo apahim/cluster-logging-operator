@@ -22,6 +22,16 @@ func ValidateCloudWatchAuth(spec obs.OutputSpec, context internalcontext.Forward
 		if roleArn == "" {
 			results = append(results, ErrInvalidRoleARN)
 		}
+		
+		// Validate optional assume role ARN
+		if authSpec.IAMRole.AssumeRoleARN != nil {
+			if authSpec.IAMRole.AssumeRoleARN.SecretName == "" {
+				results = append(results, "assumeRoleARN requires a valid secret reference")
+			}
+			if authSpec.IAMRole.AssumeRoleARN.Key == "" {
+				results = append(results, "assumeRoleARN secret reference requires a valid key")
+			}
+		}
 	}
 	return results
 }

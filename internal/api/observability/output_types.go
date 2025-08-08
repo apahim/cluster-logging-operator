@@ -194,6 +194,10 @@ func cloudwatchAuthKeys(auth *obsv1.CloudwatchAuthentication) (keys []*obsv1.Sec
 					SecretName: auth.IAMRole.Token.Secret.Name,
 				})
 			}
+			// Include AssumeRoleARN secret reference if specified
+			if auth.IAMRole.AssumeRoleARN != nil {
+				keys = append(keys, auth.IAMRole.AssumeRoleARN)
+			}
 		}
 	}
 	return keys

@@ -126,6 +126,10 @@ func authConfig(outputName string, auth *obs.CloudwatchAuthentication, options O
 			authConfig.CredentialsPath.Value = strings.Trim(vectorhelpers.ConfigPath(forwarderName+"-"+constants.AWSCredentialsConfigMapName, constants.AWSCredentialsKey), `"`)
 			authConfig.Profile.Value = "output_" + outputName
 		}
+		// Add assume_role configuration if AssumeRoleARN is specified
+		if auth.IAMRole.AssumeRoleARN != nil {
+			authConfig.AssumeRole.Value = vectorhelpers.SecretFrom(auth.IAMRole.AssumeRoleARN)
+		}
 	}
 	return authConfig
 }
