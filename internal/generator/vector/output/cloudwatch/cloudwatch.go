@@ -122,9 +122,25 @@ func authConfig(outputName string, auth *obs.CloudwatchAuthentication, options O
 		authConfig.KeyID.Value = vectorhelpers.SecretFrom(&auth.AWSAccessKey.KeyId)
 		authConfig.KeySecret.Value = vectorhelpers.SecretFrom(&auth.AWSAccessKey.KeySecret)
 	} else if auth != nil && auth.Type == obs.CloudwatchAuthTypeIAMRole {
-		if forwarderName, found := utils.GetOption(options, OptionForwarderName, ""); found {
-			authConfig.CredentialsPath.Value = strings.Trim(vectorhelpers.ConfigPath(forwarderName+"-"+constants.AWSCredentialsConfigMapName, constants.AWSCredentialsKey), `"`)
-			authConfig.Profile.Value = "output_" + outputName
+		switch auth.IAMRole.Token.From {
+		case obs.BearerTokenFromServiceAccount:
+			// Vector automatically detects web identity token credentials from the environment
+			// when running in STS-enabled clusters. The environment variables (AWS_WEB_IDENTITY_TOKEN_FILE,
+			// AWS_ROLE_ARN) set by the collector will handle the role assumption automatically.
+			// If an explicit assume_role ARN is provided, it will be used in addition to the ServiceAccount role.
+			if auth.IAMRole.AssumeRoleARN != nil {
+				authConfig.AssumeRole.Value = vectorhelpers.SecretFrom(auth.IAMRole.AssumeRoleARN)
+			}
+		case obs.BearerTokenFromSecret:
+			// When using a token from secret, we'll use the credentials file approach
+			if forwarderName, found := utils.GetOption(options, OptionForwarderName, ""); found {
+				authConfig.CredentialsPath.Value = strings.Trim(vectorhelpers.ConfigPath(forwarderName+"-"+constants.AWSCredentialsConfigMapName, constants.AWSCredentialsKey), `"`)
+				authConfig.Profile.Value = "output_" + outputName
+			}
+			// Also support assume_role with credential file approach
+			if auth.IAMRole.AssumeRoleARN != nil {
+				authConfig.AssumeRole.Value = vectorhelpers.SecretFrom(auth.IAMRole.AssumeRoleARN)
+			}
 		}
 	}
 	return authConfig
