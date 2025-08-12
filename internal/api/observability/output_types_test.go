@@ -56,13 +56,13 @@ var _ = Describe("helpers for output types", func() {
 
 				secrets := SecretReferences(spec)
 				Expect(secrets).To(HaveLen(2))
-				
+
 				// Should include primary role ARN
 				Expect(secrets).To(ContainElement(&obsv1.SecretReference{
 					SecretName: "primary-role-secret",
 					Key:        "role_arn",
 				}))
-				
+
 				// Should include assume role ARN
 				Expect(secrets).To(ContainElement(&obsv1.SecretReference{
 					SecretName: "assume-role-secret",

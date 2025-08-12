@@ -3173,6 +3173,190 @@ spec:
                       required:
                       - maxRecordsPerSecond
                       type: object
+                    s3:
+                      description: S3 configures forwarding log events to Amazon S3
+                      properties:
+                        authentication:
+                          description: Authentication sets credentials for authenticating
+                            the requests to AWS S3.
+                          properties:
+                            awsAccessKey:
+                              description: AWSAccessKey points to the AWS access key
+                                id and secret to be used for authentication.
+                              nullable: true
+                              properties:
+                                keyId:
+                                  description: KeyId points to the AWS access key
+                                    id to be used for authentication.
+                                  properties:
+                                    key:
+                                      description: Key contains the name of the key
+                                        inside the referenced Secret.
+                                      type: string
+                                    secretName:
+                                      description: SecretName contains the name of
+                                        the Secret containing the referenced value.
+                                      type: string
+                                  required:
+                                  - key
+                                  - secretName
+                                  type: object
+                                keySecret:
+                                  description: KeySecret points to the AWS access
+                                    key secret to be used for authentication.
+                                  properties:
+                                    key:
+                                      description: Key contains the name of the key
+                                        inside the referenced Secret.
+                                      type: string
+                                    secretName:
+                                      description: SecretName contains the name of
+                                        the Secret containing the referenced value.
+                                      type: string
+                                  required:
+                                  - key
+                                  - secretName
+                                  type: object
+                              required:
+                              - keyId
+                              - keySecret
+                              type: object
+                            iamRole:
+                              description: |-
+                                IAMRole points to the secret containing the role ARN to be used for authentication.
+                                This can be used for authentication in STS-enabled clusters when additionally specifying
+                                a web identity token
+                              nullable: true
+                              properties:
+                                roleARN:
+                                  description: |-
+                                    RoleARN points to the secret containing the role ARN to be used for authentication.
+                                    This is used for authentication in STS-enabled clusters.
+                                  properties:
+                                    key:
+                                      description: Key contains the name of the key
+                                        inside the referenced Secret.
+                                      type: string
+                                    secretName:
+                                      description: SecretName contains the name of
+                                        the Secret containing the referenced value.
+                                      type: string
+                                  required:
+                                  - key
+                                  - secretName
+                                  type: object
+                                token:
+                                  description: Token specifies a bearer token to be
+                                    used for authenticating requests.
+                                  properties:
+                                    from:
+                                      description: From is the source from where to
+                                        find the token
+                                      enum:
+                                      - secret
+                                      - serviceAccount
+                                      type: string
+                                    secret:
+                                      description: Use Secret if the value should
+                                        be sourced from a Secret in the same namespace.
+                                      properties:
+                                        key:
+                                          description: Name of the key used to get
+                                            the value from the referenced Secret.
+                                          type: string
+                                        name:
+                                          description: Name of secret
+                                          type: string
+                                      required:
+                                      - key
+                                      - name
+                                      type: object
+                                  required:
+                                  - from
+                                  type: object
+                                  x-kubernetes-validations:
+                                  - message: Additional secret spec is required when
+                                      bearer token is sourced from a secret
+                                    rule: self.from != 'secret' || has(self.secret)
+                              required:
+                              - roleARN
+                              - token
+                              type: object
+                            type:
+                              description: Type is the type of S3 authentication to
+                                configure
+                              enum:
+                              - awsAccessKey
+                              - iamRole
+                              type: string
+                          required:
+                          - type
+                          type: object
+                        bucket:
+                          description: Bucket is the Amazon S3 bucket name where logs
+                            will be stored.
+                          type: string
+                        keyPrefix:
+                          description: |-
+                            KeyPrefix is the prefix for the S3 object key where logs will be stored.
+                            If not specified, logs will be stored at the root of the bucket.
+                          type: string
+                        region:
+                          description: Region is the AWS region where the S3 bucket
+                            is located.
+                          type: string
+                        tuning:
+                          description: Tuning specs tuning for the output
+                          nullable: true
+                          properties:
+                            compression:
+                              description: |-
+                                Compression causes data to be compressed before sending over the network.
+                                It is an error if the compression type is not supported by the output.
+                              enum:
+                              - gzip
+                              - none
+                              type: string
+                            deliveryMode:
+                              description: |-
+                                DeliveryMode sets the delivery mode for log forwarding.
+                                This optional setting. When it is left unset, the system defaults to using an in-memory buffer.
+                                In-memory buffers offer the highest performance due to low latency, but they have two limitations:
+                                they will consume memory, and they do not provide durability — buffered data is lost on process termination or failure.
+                              enum:
+                              - AtLeastOnce
+                              - AtMostOnce
+                              type: string
+                            maxRetryDuration:
+                              description: MaxRetryDuration is the maximum time to
+                                wait between retry attempts after a delivery failure.
+                              format: int64
+                              type: integer
+                            maxWrite:
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              description: MaxWrite limits the maximum payload in
+                                terms of bytes of a single "send" to the output.
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
+                            minRetryDuration:
+                              description: MinRetryDuration is the minimum time to
+                                wait between attempts to retry after delivery a failure.
+                              format: int64
+                              type: integer
+                          type: object
+                        url:
+                          description: |-
+                            URL is the custom S3-compatible endpoint URL.
+                            If not specified, the default AWS S3 endpoint will be used.
+                            This is useful for S3-compatible services like MinIO or Ceph Object Gateway.
+                          type: string
+                      required:
+                      - authentication
+                      - bucket
+                      - region
+                      type: object
                     splunk:
                       description: Splunk configures forwarding log events to Splunk's
                         HTTP event collector
@@ -3761,6 +3945,7 @@ spec:
                       - loki
                       - lokiStack
                       - googleCloudLogging
+                      - s3
                       - splunk
                       - syslog
                       - otlp
@@ -3794,6 +3979,9 @@ spec:
                   - message: Additional type specific spec is required for the output
                       type
                     rule: self.type != 'lokiStack' || has(self.lokiStack)
+                  - message: Additional type specific spec is required for the output
+                      type
+                    rule: self.type != 's3' || has(self.s3)
                   - message: Additional type specific spec is required the for output
                       type
                     rule: self.type != 'splunk' || has(self.splunk)

@@ -82,7 +82,7 @@ metadata:
     categories: OpenShift Optional, Logging & Tracing, Observability
     certified: "false"
     containerImage: quay.io/openshift-logging/cluster-logging-operator:latest
-    createdAt: "2025-08-05T12:38:51Z"
+    createdAt: "2025-08-07T06:21:44Z"
     description: The Red Hat OpenShift Logging Operator for OCP provides a means for
       configuring and managing log collection and forwarding.
     features.operators.openshift.io/cnf: "false"
@@ -1409,6 +1409,139 @@ spec:
         path: outputs[0].rateLimit.maxRecordsPerSecond
         x-descriptors:
         - urn:alm:descriptor:com.tectonic.ui:number
+      - description: S3 configures forwarding log events to Amazon S3
+        displayName: Amazon S3
+        path: outputs[0].s3
+      - description: Authentication sets credentials for authenticating the requests
+          to AWS S3.
+        displayName: Authentication Options
+        path: outputs[0].s3.authentication
+      - description: AWSAccessKey points to the AWS access key id and secret to be
+          used for authentication.
+        displayName: Access Key
+        path: outputs[0].s3.authentication.awsAccessKey
+      - description: KeyId points to the AWS access key id to be used for authentication.
+        displayName: Secret with Access Key ID
+        path: outputs[0].s3.authentication.awsAccessKey.keyId
+      - description: Key contains the name of the key inside the referenced Secret.
+        displayName: Key Name
+        path: outputs[0].s3.authentication.awsAccessKey.keyId.key
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: SecretName contains the name of the Secret containing the referenced
+          value.
+        displayName: Secret Name
+        path: outputs[0].s3.authentication.awsAccessKey.keyId.secretName
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: KeySecret points to the AWS access key secret to be used for
+          authentication.
+        displayName: Secret with Access Key Secret
+        path: outputs[0].s3.authentication.awsAccessKey.keySecret
+      - description: Key contains the name of the key inside the referenced Secret.
+        displayName: Key Name
+        path: outputs[0].s3.authentication.awsAccessKey.keySecret.key
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: SecretName contains the name of the Secret containing the referenced
+          value.
+        displayName: Secret Name
+        path: outputs[0].s3.authentication.awsAccessKey.keySecret.secretName
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: |-
+          IAMRole points to the secret containing the role ARN to be used for authentication.
+          This can be used for authentication in STS-enabled clusters when additionally specifying
+          a web identity token
+        displayName: Amazon IAM Role
+        path: outputs[0].s3.authentication.iamRole
+      - description: |-
+          RoleARN points to the secret containing the role ARN to be used for authentication.
+          This is used for authentication in STS-enabled clusters.
+        displayName: RoleARN Secret
+        path: outputs[0].s3.authentication.iamRole.roleARN
+      - description: Key contains the name of the key inside the referenced Secret.
+        displayName: Key Name
+        path: outputs[0].s3.authentication.iamRole.roleARN.key
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: SecretName contains the name of the Secret containing the referenced
+          value.
+        displayName: Secret Name
+        path: outputs[0].s3.authentication.iamRole.roleARN.secretName
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Token specifies a bearer token to be used for authenticating
+          requests.
+        displayName: Token
+        path: outputs[0].s3.authentication.iamRole.token
+      - description: From is the source from where to find the token
+        displayName: Token Source
+        path: outputs[0].s3.authentication.iamRole.token.from
+      - description: Use Secret if the value should be sourced from a Secret in the
+          same namespace.
+        displayName: Token Secret
+        path: outputs[0].s3.authentication.iamRole.token.secret
+      - description: Name of the key used to get the value from the referenced Secret.
+        displayName: Key Name
+        path: outputs[0].s3.authentication.iamRole.token.secret.key
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Name of secret
+        displayName: Secret Name
+        path: outputs[0].s3.authentication.iamRole.token.secret.name
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Type is the type of S3 authentication to configure
+        displayName: Authentication Type
+        path: outputs[0].s3.authentication.type
+      - description: Bucket is the Amazon S3 bucket name where logs will be stored.
+        displayName: S3 Bucket Name
+        path: outputs[0].s3.bucket
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: |-
+          KeyPrefix is the prefix for the S3 object key where logs will be stored.
+          If not specified, logs will be stored at the root of the bucket.
+        displayName: Key Prefix
+        path: outputs[0].s3.keyPrefix
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Region is the AWS region where the S3 bucket is located.
+        displayName: AWS Region
+        path: outputs[0].s3.region
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
+      - description: Tuning specs tuning for the output
+        displayName: Tuning Options
+        path: outputs[0].s3.tuning
+      - description: |-
+          Compression causes data to be compressed before sending over the network.
+          It is an error if the compression type is not supported by the output.
+        displayName: Compression
+        path: outputs[0].s3.tuning.compression
+      - displayName: Delivery Mode
+        path: outputs[0].s3.tuning.deliveryMode
+      - description: MaxRetryDuration is the maximum time to wait between retry attempts
+          after a delivery failure.
+        displayName: Maximum Retry Duration
+        path: outputs[0].s3.tuning.maxRetryDuration
+      - description: MaxWrite limits the maximum payload in terms of bytes of a single
+          "send" to the output.
+        displayName: Batch Size
+        path: outputs[0].s3.tuning.maxWrite
+      - description: MinRetryDuration is the minimum time to wait between attempts
+          to retry after delivery a failure.
+        displayName: Minimum Retry Duration
+        path: outputs[0].s3.tuning.minRetryDuration
+      - description: |-
+          URL is the custom S3-compatible endpoint URL.
+          If not specified, the default AWS S3 endpoint will be used.
+          This is useful for S3-compatible services like MinIO or Ceph Object Gateway.
+        displayName: Custom Endpoint URL
+        path: outputs[0].s3.url
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Splunk configures forwarding log events to Splunk's HTTP event
           collector
         displayName: Splunk

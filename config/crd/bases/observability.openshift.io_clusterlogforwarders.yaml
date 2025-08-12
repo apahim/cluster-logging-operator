@@ -3366,6 +3366,12 @@ spec:
                               format: int64
                               type: integer
                           type: object
+                        url:
+                          description: |-
+                            URL is the custom S3-compatible endpoint URL.
+                            If not specified, the default AWS S3 endpoint will be used.
+                            This is useful for S3-compatible services like MinIO or Ceph Object Gateway.
+                          type: string
                       required:
                       - authentication
                       - bucket

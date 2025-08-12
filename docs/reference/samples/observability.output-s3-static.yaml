@@ -1,0 +1,38 @@
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  outputs:
+  - name: s3-logs
+    type: s3
+    s3:
+      bucket: my-log-bucket
+      region: us-east-1
+      keyPrefix: "cluster-logs/{.namespace||\"unknown\"}/{.level||\"info\"}/"
+      authentication:
+        type: awsAccessKey
+        awsAccessKey:
+          keyId:
+            secretName: s3-credentials
+            key: aws_access_key_id
+          keySecret:
+            secretName: s3-credentials
+            key: aws_secret_access_key
+  pipelines:
+  - name: application-logs
+    inputRefs:
+    - application
+    outputRefs:
+    - s3-logs
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s3-credentials
+  namespace: openshift-logging
+type: Opaque
+data:
+  aws_access_key_id: <base64_encoded_access_key_id>
+  aws_secret_access_key: <base64_encoded_secret_access_key>

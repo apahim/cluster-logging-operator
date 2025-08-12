@@ -1476,6 +1476,14 @@ spec:
           to retry after delivery a failure.
         displayName: Minimum Retry Duration
         path: outputs[0].s3.tuning.minRetryDuration
+      - description: |-
+          URL is the custom S3-compatible endpoint URL.
+          If not specified, the default AWS S3 endpoint will be used.
+          This is useful for S3-compatible services like MinIO or Ceph Object Gateway.
+        displayName: Custom Endpoint URL
+        path: outputs[0].s3.url
+        x-descriptors:
+        - urn:alm:descriptor:com.tectonic.ui:text
       - description: Splunk configures forwarding log events to Splunk's HTTP event
           collector
         displayName: Splunk

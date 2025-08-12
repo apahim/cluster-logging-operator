@@ -1,0 +1,41 @@
+apiVersion: observability.openshift.io/v1
+kind: ClusterLogForwarder
+metadata:
+  name: instance
+  namespace: openshift-logging
+spec:
+  outputs:
+  - name: s3-logs-iam
+    type: s3
+    s3:
+      bucket: my-log-bucket
+      region: us-east-1
+      keyPrefix: "date=%F/"  # Creates daily folders
+      authentication:
+        type: iamRole
+        iamRole:
+          roleARN:
+            secretName: s3-iam-role
+            key: role_arn
+          token:
+            from: serviceAccount
+            serviceAccount:
+              # Token file will be automatically mounted from service account
+              # Default path: /var/run/secrets/kubernetes.io/serviceaccount/token
+  pipelines:
+  - name: all-logs
+    inputRefs:
+    - application
+    - infrastructure
+    - audit
+    outputRefs:
+    - s3-logs-iam
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s3-iam-role
+  namespace: openshift-logging
+type: Opaque
+data:
+  role_arn: <base64_encoded_role_arn>  # Example: arn:aws:iam::123456789012:role/my-s3-role

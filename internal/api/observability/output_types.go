@@ -59,6 +59,8 @@ func (outputs Outputs) NeedServiceAccountToken() bool {
 			auths = append(auths, o.Elasticsearch.Authentication.Token)
 		case o.Type == obsv1.OutputTypeOTLP && o.OTLP.Authentication != nil && o.OTLP.Authentication.Token != nil:
 			auths = append(auths, o.OTLP.Authentication.Token)
+		case o.Type == obsv1.OutputTypeS3 && o.S3 != nil && o.S3.Authentication != nil && o.S3.Authentication.Type == obsv1.S3AuthTypeIAMRole:
+			auths = append(auths, &o.S3.Authentication.IAMRole.Token)
 		}
 	}
 	for _, token := range auths {
